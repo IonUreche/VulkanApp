@@ -4,7 +4,7 @@ require( "Qt/qt" )
 local qt = premake.extensions.qt
 
 PROJECT_NAME = "VulkanApp"
-ROOT = path.getabsolute('../')
+ROOT = path.getabsolute("../")
 VULKAN_ROOT_PATH = "C:/VulkanSDK/1.1.77.0/"
 VULKAN_INCLUDE_PATH = VULKAN_ROOT_PATH .. "include"
 VULKAN_LIB_PATH_x64 = VULKAN_ROOT_PATH .. "Lib"
@@ -12,19 +12,22 @@ VULKAN_LIB_PATH_x86 = VULKAN_ROOT_PATH .. "Lib32"
 QT_ROOT_PATH = "D:/Qt/5.10.0/"
 QT_PATH_x86 = QT_ROOT_PATH .. "winrt_x86_msvc2017"
 QT_PATH_x64 = QT_ROOT_PATH .. "msvc2017_64"
-PRJ_BASE = ROOT .. '/build/prj'
-BIN_BASE = ROOT .. '/build/bin'
-SRC_BASE = ROOT .. '/src/'
+PRJ_BASE = ROOT .. "/build/prj"
+BIN_BASE = ROOT .. "/build/bin"
+SRC_BASE = ROOT .. "/src/"
 
 
-workspace "VulkanRenderer"
-    configurations { "Debug", "Release" }
-    platforms { "Win32", "Win64" }
-  
-project (PROJECT_NAME)
+solution ("VulkanRenderer")
     language "C++"
+    location (PRJ_BASE..'/msvc' )
+
+    configurations { "Debug", "Release" }
+    platforms { "Win32", "x64" }
+    location (PRJ_BASE..'/msvc' )
+
+project (PROJECT_NAME)
+
     kind "ConsoleApp"
-    targetdir "bin/%{cfg.buildcfg}"
 
     files { SRC_BASE .. '/**.cpp',
             SRC_BASE .. '/**.h',
@@ -37,15 +40,23 @@ project (PROJECT_NAME)
     qtmodules { "core", "gui", "widgets"}
     qtprefix "Qt5"
 
+    qtgenerateddir(BIN_BASE .. '/generated/_qt')
+
     includedirs { VULKAN_INCLUDE_PATH }
 
-    filter { "platforms:Win64" }
+    filter { "platforms:x64" }
     libdirs { VULKAN_LIB_PATH_x64 }
     qtpath (QT_PATH_x64)
-    
+    qtbinpath(QT_PATH_x64.."/bin")
+    qtincludepath(QT_PATH_x64.."/include")
+    qtlibpath(QT_PATH_x64.."/lib")
+
     filter { "platforms:Win32" }
     libdirs { VULKAN_LIB_PATH_x86 }
     qtpath (QT_PATH_x86)
+    qtbinpath(QT_PATH_x86.."/bin")
+	qtincludepath(QT_PATH_x86.."/include")
+	qtlibpath(QT_PATH_x86.."/lib")
 
     filter "configurations:Debug"
     defines { 
@@ -54,6 +65,7 @@ project (PROJECT_NAME)
         '_CRT_SECURE_NO_WARNINGS'
     }
     symbols "On"
+    qtsuffix("d")
 
     filter "configurations:Release"
     defines { 
@@ -65,31 +77,19 @@ project (PROJECT_NAME)
 
     filter { "platforms:Win32", "configurations:Debug" }
     includedirs { ROOT .. 'make/obj/Win32/Debug' }
+    targetdir (BIN_BASE ..'/Win32/Debug')
 
     filter { "platforms:Win32", "configurations:Release" }
     includedirs { ROOT .. 'make/obj/Win32/Release' }
+    targetdir (BIN_BASE ..'/Win32/Release')
 
-    filter { "platforms:Win64", "configurations:Debug" }
-    includedirs { ROOT .. 'make/obj/Win64/Debug' }
+    filter { "platforms:x64", "configurations:Debug" }
+    includedirs { ROOT .. 'make/obj/x64/Debug' }
+    targetdir (BIN_BASE ..'/x64/Debug')
 
-    filter { "platforms:Win64", "configurations:Release" }
-    includedirs { ROOT .. 'make/obj/Win64/Release' }
-
-    filter { "platforms:Win32", "files:**.ui" }
-    -- A message to display while this build step is running (optional)
-    buildmessage 'UIdsdC\'ing %{file.relpath}...'
-
-    -- One or more commands to run (required)
-    buildcommands {
-       --'luac -o "%{cfg.objdir}/%{file.basename}.out" "%{file.relpath}"'
-      '/bin/uic.exe -o "%{cfg.objdir}/ui_%(file.basename).h" "%(file.relpath)"'
-    }
-
-    -- One or more outputs resulting from the build (required)
-    buildoutputs { "%{cfg.objdir}/ui_%(file.basename).h" }
-
-    -- One or more additional dependencies for this build command (optional)
-    -- buildinputs { QT_PATH_x86 .. '/bin/uic.exe' }
+    filter { "platforms:x64", "configurations:Release" }
+    includedirs { ROOT .. 'make/obj/x64/Release' }
+    targetdir (BIN_BASE ..'/x64/Release')
 
     
 
