@@ -16,6 +16,8 @@ PRJ_BASE = ROOT .. "/build/prj"
 BIN_BASE = ROOT .. "/build/bin"
 SRC_BASE = ROOT .. "/src/"
 
+GLM_PATH = ROOT .. '/dependencies/glm-0.9.9.0'
+
 
 solution ("VulkanRenderer")
     language "C++"
@@ -42,7 +44,10 @@ project (PROJECT_NAME)
 
     qtgenerateddir(BIN_BASE .. '/generated/_qt')
 
-    includedirs { VULKAN_INCLUDE_PATH }
+    -- global defines
+    includedirs { VULKAN_INCLUDE_PATH, GLM_PATH, SRC_BASE }
+    defines { "VK_USE_PLATFORM_WIN32_KHR" }
+    links { "vulkan-1" }
 
     filter { "platforms:x64" }
     libdirs { VULKAN_LIB_PATH_x64 }
@@ -62,7 +67,8 @@ project (PROJECT_NAME)
     defines { 
         '_DEBUG',
         '_SCL_SECURE_NO_WARNINGS',
-        '_CRT_SECURE_NO_WARNINGS'
+        '_CRT_SECURE_NO_WARNINGS',
+        'VULKAN_RUNTIME_DEBUG'
     }
     symbols "On"
     qtsuffix("d")
