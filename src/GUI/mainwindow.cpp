@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-	vulkan_window = new VulkanWindow();
+	vulkan_window = new VulkanWindow(width(), height());
 	window_container = QWidget::createWindowContainer(vulkan_window);
 	ui->verticalLayout->addWidget(window_container);
 }

@@ -10,7 +10,8 @@ struct QueueFamilyIndices
 	int presentFamily = -1;
 	bool isComplete()
 	{
-		return graphicsFamily >= 0 && presentFamily >= 0;	}
+		return graphicsFamily >= 0 && presentFamily >= 0;
+	}
 };
 
 struct SwapChainSupportDetails
@@ -24,7 +25,7 @@ class VulkanWindow : public QWindow
 {
     Q_OBJECT
 public:
-    VulkanWindow();
+    VulkanWindow(int width, int height);
     ~VulkanWindow();
 
 	void CreateInstance();
@@ -45,8 +46,20 @@ public:
 	SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
 
 	void CreateSurface();
+	void CreateSwapChain();
+	void CreateImageViews();
+	void CreateGraphicsPipeline();
+
+	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+	static std::vector<char> readFile(const std::string& filename);
 
 private:
+
+	int m_width;
+	int m_height;
 
 	QVector<const char *> m_instanceLayers;
 	QVector<const char *> m_instanceExtensions;
@@ -58,4 +71,9 @@ private:
 	VkDevice					m_device;
 	VkSurfaceKHR				m_surface;
 	VkQueue						m_presentQueue;
+	VkSwapchainKHR				m_swapChain;
+	std::vector<VkImage>		m_swapChainImages;
+	VkFormat					m_swapChainImageFormat;
+	VkExtent2D					m_swapChainExtent;
+	std::vector<VkImageView>	m_swapChainImageViews;
 };
