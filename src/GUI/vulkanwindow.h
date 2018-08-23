@@ -49,6 +49,8 @@ public:
 	void CreateSwapChain();
 	void CreateImageViews();
 	void CreateGraphicsPipeline();
+	void CreateRenderPass();
+	VkShaderModule CreateShaderModule(const std::vector<char>& code);
 
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
@@ -65,6 +67,9 @@ private:
 	QVector<const char *> m_instanceExtensions;
 	QVector<const char *> m_deviceLayers;
 	QVector<const char *> m_deviceExtensions;
+
+	VkRenderPass m_renderPass;
+	VkPipelineLayout m_pipelineLayout;
 
 	VkInstance					m_instance;
 	VkPhysicalDevice			m_physicalDevice = VK_NULL_HANDLE;
