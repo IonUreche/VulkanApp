@@ -5,7 +5,7 @@ local qt = premake.extensions.qt
 
 PROJECT_NAME = "VulkanApp"
 ROOT = path.getabsolute("../")
-VULKAN_ROOT_PATH = "C:/VulkanSDK/1.1.77.0/"
+VULKAN_ROOT_PATH = "C:/VulkanSDK/1.1.97.0/"
 VULKAN_INCLUDE_PATH = VULKAN_ROOT_PATH .. "include"
 VULKAN_LIB_PATH_x64 = VULKAN_ROOT_PATH .. "Lib"
 VULKAN_LIB_PATH_x86 = VULKAN_ROOT_PATH .. "Lib32"
@@ -17,6 +17,9 @@ BIN_BASE = ROOT .. "/build/bin"
 SRC_BASE = ROOT .. "/src/"
 
 GLM_PATH = ROOT .. '/dependencies/glm-0.9.9.0'
+GLFW_PATH = ROOT .. '/dependencies/glfw-3.2.1'
+STB_PATH = ROOT .. '/dependencies/stb'
+GLFW_INCLUDE_PATH = GLFW_PATH .. '/include'
 
 
 solution ("VulkanRenderer")
@@ -45,7 +48,7 @@ project (PROJECT_NAME)
     qtgenerateddir(BIN_BASE .. '/generated/_qt')
 
     -- global defines
-    includedirs { VULKAN_INCLUDE_PATH, GLM_PATH, SRC_BASE }
+    includedirs { VULKAN_INCLUDE_PATH, GLM_PATH, GLFW_INCLUDE_PATH, STB_PATH, SRC_BASE }
     defines { "VK_USE_PLATFORM_WIN32_KHR" }
     links { "vulkan-1" }
 
