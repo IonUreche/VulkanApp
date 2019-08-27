@@ -5,7 +5,7 @@ local qt = premake.extensions.qt
 
 PROJECT_NAME = "VulkanApp"
 ROOT = path.getabsolute("../")
-VULKAN_ROOT_PATH = "C:/VulkanSDK/1.1.97.0/"
+VULKAN_ROOT_PATH = "C:/VulkanSDK/1.1.114.0/"
 VULKAN_INCLUDE_PATH = VULKAN_ROOT_PATH .. "include"
 VULKAN_LIB_PATH_x64 = VULKAN_ROOT_PATH .. "Lib"
 VULKAN_LIB_PATH_x86 = VULKAN_ROOT_PATH .. "Lib32"
@@ -15,6 +15,7 @@ QT_PATH_x64 = QT_ROOT_PATH .. "msvc2017_64"
 PRJ_BASE = ROOT .. "/build/prj"
 BIN_BASE = ROOT .. "/build/bin"
 SRC_BASE = ROOT .. "/src/"
+SHADERS_BASE = ROOT .. "/resources/shaders/"
 
 GLM_PATH = ROOT .. '/dependencies/glm-0.9.9.0'
 GLFW_PATH = ROOT .. '/dependencies/glfw-3.2.1'
@@ -38,7 +39,9 @@ project (PROJECT_NAME)
             SRC_BASE .. '/**.h',
             SRC_BASE .. '/**.ui',
             SRC_BASE .. '/**.qrc',
-            SRC_BASE .. '/**.rc'}
+            SRC_BASE .. '/**.rc',
+            SHADERS_BASE .. '/**.vert',
+            SHADERS_BASE .. '/**.frag'}
 
     qt.enable()
 
@@ -51,6 +54,7 @@ project (PROJECT_NAME)
     includedirs { VULKAN_INCLUDE_PATH, GLM_PATH, GLFW_INCLUDE_PATH, STB_PATH, SRC_BASE }
     defines { "VK_USE_PLATFORM_WIN32_KHR" }
     links { "vulkan-1" }
+    postbuildcommands { "cmd $(SolutionDir)..\\..\\..\\resources\\compileShaders.bat" }
 
     filter { "platforms:x64" }
     libdirs { VULKAN_LIB_PATH_x64 }
