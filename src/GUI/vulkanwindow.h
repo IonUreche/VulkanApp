@@ -5,6 +5,7 @@
 #include <vector>
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -80,8 +81,13 @@ public:
 	void CreateTextureImage();
 	void CreateTextureImageView();
 	void CreateTextureSampler();
+	void CreateDepthResources();
 
-	VkImageView CreateImageView(VkImage image, VkFormat format);
+	VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	VkFormat FindDepthFormat();
+	bool HasStencilComponent(VkFormat format);
+
+	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 	void UpdateUniformBuffer(uint32_t currentImage);
 
@@ -160,6 +166,10 @@ private:
 	VkImageView						m_textureImageView;
 	VkSampler						m_textureSampler;
 	VkDeviceMemory					m_textureImageMemory;
+
+	VkImage							m_depthImage;
+	VkDeviceMemory					m_depthImageMemory;
+	VkImageView						m_depthImageView;
 
 	std::vector<VkBuffer>			m_uniformBuffers;
 	std::vector<VkDeviceMemory>		m_uniformBuffersMemory;
