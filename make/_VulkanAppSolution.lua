@@ -20,6 +20,7 @@ SHADERS_BASE = ROOT .. "/resources/shaders/"
 GLM_PATH = ROOT .. '/dependencies/glm-0.9.9.0'
 GLFW_PATH = ROOT .. '/dependencies/glfw-3.2.1'
 STB_PATH = ROOT .. '/dependencies/stb'
+TINYOBJLOADER_PATH = ROOT .. '/dependencies/tinyobjloader'
 GLFW_INCLUDE_PATH = GLFW_PATH .. '/include'
 
 
@@ -51,7 +52,7 @@ project (PROJECT_NAME)
     qtgenerateddir(BIN_BASE .. '/generated/_qt')
 
     -- global defines
-    includedirs { VULKAN_INCLUDE_PATH, GLM_PATH, GLFW_INCLUDE_PATH, STB_PATH, SRC_BASE }
+    includedirs { VULKAN_INCLUDE_PATH, GLM_PATH, GLFW_INCLUDE_PATH, STB_PATH, TINYOBJLOADER_PATH, SRC_BASE }
     defines { "VK_USE_PLATFORM_WIN32_KHR" }
     links { "vulkan-1" }
     postbuildcommands { "cmd $(SolutionDir)..\\..\\..\\resources\\compileShaders.bat" }

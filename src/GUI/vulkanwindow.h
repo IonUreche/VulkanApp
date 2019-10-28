@@ -3,11 +3,16 @@
 #include "vulkan/vulkan.h"
 #include <QWindow>
 #include <vector>
+#include <array>
+#include <unordered_map>
+
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/hash.hpp>
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -33,6 +38,59 @@ struct UniformBufferObject {
 	glm::mat4 view;
 	glm::mat4 proj;
 };
+
+struct Vertex {
+	glm::vec3 pos;
+	glm::vec3 color;
+	glm::vec2 texCoord;
+
+	bool operator==(const Vertex& other) const
+	{
+		return pos == other.pos && color == other.color && texCoord == other.texCoord;
+	}
+
+	static VkVertexInputBindingDescription
+		getBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(Vertex);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		return bindingDescription;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 3>
+		getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+		attributeDescriptions[0].binding = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+
+		return attributeDescriptions;
+	}
+};
+
+namespace std {
+	template<> struct hash<Vertex>
+	{
+		size_t operator()(Vertex const& vertex) const
+		{
+			return ((hash<glm::vec3>()(vertex.pos) ^
+				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+				(hash<glm::vec2>()(vertex.texCoord) << 1);
+		}
+	};
+}
 
 class VulkanWindow : public QWindow
 {
@@ -87,23 +145,25 @@ public:
 	VkFormat FindDepthFormat();
 	bool HasStencilComponent(VkFormat format);
 
-	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 	void UpdateUniformBuffer(uint32_t currentImage);
 
 	// Helper functions
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, 
 		VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-	void CreateImage(uint32_t width, uint32_t height, VkFormat format, 
+	void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format,
 		VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
 		VkImage& image, VkDeviceMemory& imageMemory);
 	VkCommandBuffer BeginSingleTimeCommands();
 	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 	void TransitionImageLayout(VkImage image, VkFormat format, 
-		VkImageLayout oldLayout, VkImageLayout newLayout);
+		VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+	void GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
 	void MainLoop();
 	void DrawFrame();
@@ -117,6 +177,8 @@ public:
 	static std::vector<char> readFile(const std::string& filename);
 
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+	void LoadModel();
 
 public slots:
 	void update();
@@ -179,4 +241,12 @@ private:
 	bool							m_createdCommandBuffers;
 
 	bool							m_canDraw = false;
+	uint32_t						m_mipLevels;
+
+	// Draw Data
+	std::vector<Vertex> m_vertices;
+	std::vector<uint32_t> m_indices;
+
+	std::unordered_map<Vertex, uint32_t> m_uniqueVertices = {};
+
 };
