@@ -3,15 +3,15 @@
 
 #include <QVBoxLayout>
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-	vulkan_window = new VulkanWindow(width(), height());
-	window_container = QWidget::createWindowContainer(vulkan_window);
-	ui->verticalLayout->addWidget(window_container);
+	m_window = new Window(width(), height());
+	m_windowContainer = QWidget::createWindowContainer(m_window);
+	ui->verticalLayout->addWidget(m_windowContainer);
 }
 
 MainWindow::~MainWindow()

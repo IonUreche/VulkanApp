@@ -21,25 +21,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-const std::string MODEL_PATH = "../../../resources/models/chalet.obj";
-const std::string TEXTURE_PATH = "../../../resources/textures/chalet.jpg";
-
-//const std::vector<Vertex> vertices = {
-//{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-//{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-//{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-//{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-//
-//{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-//{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-//{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-//{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-//};
-//
-//const std::vector<uint16_t> indices = {
-//0, 1, 2, 2, 3, 0,
-//4, 5, 6, 6, 7, 4
-//};
+const std::string MODEL_MAT_PATH = "../../../resources/models/sponza_crytec";
+const std::string MODEL_PATH = "../../../resources/models/sponza_crytec/sponza.obj";
+const std::string TEXTURE_PATH = "../../../resources/models/sponza_crytec/textures/background.png";
 
 uint32_t VulkanWindow::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
@@ -81,28 +65,8 @@ void VulkanWindow::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkM
 
 	VK_CHECK_RESULT(vkBindBufferMemory(m_device, buffer, bufferMemory, 0));
 }
-
-void VulkanWindow::update()
-{
-	if (m_canDraw)
-	{
-		DrawFrame();
-	}
-}
 //======================================================================================
-bool VulkanWindow::event(QEvent *ev)
-{
-	if (ev->type() == QEvent::Show)
-	{
-		if (m_createdCommandBuffers)
-		{
-			//DrawFrame();
-		}
-	}
-	return QWindow::event(ev);
-}
-//======================================================================================
-VulkanWindow::VulkanWindow(int width, int height) : m_width(width), m_height(height), m_createdCommandBuffers(false)
+VulkanWindow::VulkanWindow(int width, int height, uint32_t winId) : m_width(width), m_height(height), m_winId(winId)
 {
 	//uint32_t extensionCount = 0;
 	//vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -116,7 +80,7 @@ VulkanWindow::VulkanWindow(int width, int height) : m_width(width), m_height(hei
 #ifdef _DEBUG
 	vks::debug::setupDebugging(m_instance, VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT, VK_NULL_HANDLE);
 #endif // _DEBUG
-	CreateSurface();
+	CreateSurface(winId);
 	PickPhysicalDevice();
 	CreateLogicalDevice();
 	CreateSwapChain();
@@ -142,15 +106,6 @@ VulkanWindow::VulkanWindow(int width, int height) : m_width(width), m_height(hei
 
 	CreateCommandBuffers();
 	CreateSyncObjects();
-	
-	m_createdCommandBuffers = true;
-
-	QTimer* graphics_timer = new QTimer;
-	graphics_timer->setInterval(1);
-	connect(graphics_timer, &QTimer::timeout, this, &VulkanWindow::update);
-	graphics_timer->start();
-
-	m_canDraw = true;
 }
 //======================================================================================
 void VulkanWindow::CleanUp()
@@ -390,13 +345,13 @@ QueueFamilyIndices VulkanWindow::FindQueueFamilies(VkPhysicalDevice device)
 	return indices;
 }
 //======================================================================================
-void VulkanWindow::CreateSurface()
+void VulkanWindow::CreateSurface(uint32_t winId)
 {
 #if VK_USE_PLATFORM_WIN32_KHR
 	VkWin32SurfaceCreateInfoKHR create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 	create_info.hinstance = GetModuleHandle(nullptr);
-	create_info.hwnd = reinterpret_cast<HWND> (this->winId());
+	create_info.hwnd = reinterpret_cast<HWND> (winId);
 	VK_CHECK_RESULT(vkCreateWin32SurfaceKHR(m_instance, &create_info, nullptr, &m_surface));
 #elif VK_USE_PLATFORM_XCB_KHR
 	VkXcbSurfaceCreateInfoKHR create_info = {};
@@ -1130,11 +1085,6 @@ void VulkanWindow::GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texH
 	EndSingleTimeCommands(commandBuffer);
 }
 //======================================================================================
-void VulkanWindow::MainLoop()
-{
-
-}
-//======================================================================================
 void VulkanWindow::DrawFrame()
 {
 	vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
@@ -1205,8 +1155,8 @@ void VulkanWindow::UpdateUniformBuffer(uint32_t currentImage)
 	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 	
 	UniformBufferObject ubo = {};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
+	ubo.model = glm::rotate(glm::mat4(1.0f), 0.0f/*time * glm::radians(90.0f)*/, glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f),
 		m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
@@ -1629,7 +1579,7 @@ void VulkanWindow::LoadModel()
 	std::vector<tinyobj::material_t> materials;
 	std::string err, warn;
 
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str()))
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str(), MODEL_MAT_PATH.c_str()))
 	{
 		throw std::runtime_error(err);
 	}
