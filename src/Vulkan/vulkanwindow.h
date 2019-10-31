@@ -174,6 +174,9 @@ public:
 
 	void LoadModel();
 
+	void SetView(glm::mat4x4 view){ m_view = view; }
+	void SetProjection(glm::mat4x4 projection) { m_projection = projection; }
+
 private:
 
 	uint32_t m_winId;
@@ -230,6 +233,9 @@ private:
 
 	size_t							m_currentFrame = 0;
 	uint32_t						m_mipLevels;
+
+	glm::mat4x4						m_view;
+	glm::mat4x4						m_projection;
 
 	// Draw Data
 	std::vector<Vertex> m_vertices;

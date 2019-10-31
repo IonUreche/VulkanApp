@@ -3,14 +3,11 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <functional>
-#include <iostream>
 #include <algorithm>
 #include <set>
-#include <fstream>
-#include <chrono>
 #include <string>
 
-#include <QTimer>
+#include "Utils/FileUtils.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
@@ -681,8 +678,8 @@ void VulkanWindow::CreateDescriptorSets()
 //======================================================================================
 void VulkanWindow::CreateGraphicsPipeline()
 {
-	auto vertShaderCode = readFile("../../../resources/vert.spv");
-	auto fragShaderCode = readFile("../../../resources/frag.spv");
+	auto vertShaderCode = FileUtils::readFile("../../../resources/vert.spv");
+	auto fragShaderCode = FileUtils::readFile("../../../resources/frag.spv");
 
 	VkShaderModule vertShaderModule;
 	VkShaderModule fragShaderModule;
@@ -1149,17 +1146,10 @@ void VulkanWindow::DrawFrame()
 //======================================================================================
 void VulkanWindow::UpdateUniformBuffer(uint32_t currentImage)
 {
-	static auto startTime = std::chrono::high_resolution_clock::now();
-
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-	
 	UniformBufferObject ubo = {};
-	ubo.model = glm::rotate(glm::mat4(1.0f), 0.0f/*time * glm::radians(90.0f)*/, glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f),
-		m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
+	ubo.model = glm::mat4(1.0f);
+	ubo.view = m_view;
+	ubo.proj = m_projection;
 	ubo.proj[1][1] *= -1; // invert y axis (was intended for openGL)
 	
 	void* data;
@@ -1555,21 +1545,6 @@ VkShaderModule VulkanWindow::CreateShaderModule(const std::vector<char>& code)
 	VkShaderModule shaderModule;
 	VK_CHECK_RESULT(vkCreateShaderModule(m_device, &createInfo, nullptr, &shaderModule));
 	return shaderModule;
-}
-//======================================================================================
-std::vector<char> VulkanWindow::readFile(const std::string& filename)
-{
-	std::ifstream file(filename, std::ios::ate | std::ios::binary);
-	if (!file.is_open())
-	{
-		throw std::runtime_error("failed to open file!");
-	}
-	size_t fileSize = (size_t)file.tellg();
-	std::vector<char> buffer(fileSize);
-	file.seekg(0);
-	file.read(buffer.data(), fileSize);
-	file.close();
-	return buffer;
 }
 //======================================================================================
 void VulkanWindow::LoadModel()
